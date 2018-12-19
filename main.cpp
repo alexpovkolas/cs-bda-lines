@@ -25,7 +25,6 @@ void master(vector<vector<int>>& matrix, int block_size, int blocks_count, int l
     for (int i = 0; i < matrix.size(); ++i) {
         for (int j = 0; j < blocks_count; ++j) {
             MPI_Request request;
-            //cout << "Receiving: " << i << " From Source " << i / lines_per_slave + 1 << " for tag " << j << endl;
             MPI_Irecv(matrix[i].data() + j * block_size, block_size, MPI_INT, i / lines_per_slave + 1, j, MPI_COMM_WORLD, &request);
             recv_requests.push_back(request);
         }
@@ -35,15 +34,6 @@ void master(vector<vector<int>>& matrix, int block_size, int blocks_count, int l
     for (int i = 0; i < recv_requests.size(); ++i) {
         MPI_Wait(&recv_requests[i], MPI_STATUS_IGNORE);
     }
-
-    for (int i = 0; i < matrix.size(); i++) {
-        for (int j = 0; j < matrix[i].size(); j++) {
-            cout << setw(2) << matrix[i][j] << " ";
-        }
-
-        cout << endl;
-    }
-    cout << endl;
 }
 
 void slave(vector<int> buffer, int lines_count, int blocks_count, int rank, int world_size) {
@@ -57,7 +47,6 @@ void slave(vector<int> buffer, int lines_count, int blocks_count, int rank, int 
             for (int j = 0; j < buffer.size(); ++j) {
                 buffer[j] += 1;
             }
-
 
             MPI_Request request;
             MPI_Isend(buffer.data(), buffer.size(), MPI_INT, ROOT, status.MPI_TAG, MPI_COMM_WORLD, &request);
@@ -73,6 +62,16 @@ void slave(vector<int> buffer, int lines_count, int blocks_count, int rank, int 
 
 }
 
+void print(vector<vector<int>>& a){
+    for (int i = 0; i < a.size(); i++) {
+        for (int j = 0; j < a[i].size(); j++) {
+            cout << setw(2) << a[i][j] << " ";
+        }
+
+        cout << endl;
+    }
+    cout << endl;
+}
 
 int main() {
 
@@ -95,6 +94,8 @@ int main() {
 
         vector<vector<int>> a(size, vector<int>(size, 0));
         master(a, block_size, blocks_count, lines_per_slave);
+        print(a);
+
     } else {
         vector<int> buffer(block_size);
         slave(buffer, lines_per_slave, blocks_count, rank, world_size);
