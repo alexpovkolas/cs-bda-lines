@@ -21,7 +21,6 @@ void master(vector<vector<int>>& matrix, int block_size, int blocks_count, int l
         MPI_Isend(initialLine.data() + i * block_size, block_size, MPI_INT, 1, i, MPI_COMM_WORLD, &send_requests[i]);
     }
 
-    cout << "Start receiving: "<< matrix.size() << endl;
     vector<MPI_Request> recv_requests;
     for (int i = 0; i < matrix.size(); ++i) {
         for (int j = 0; j < blocks_count; ++j) {
@@ -33,12 +32,9 @@ void master(vector<vector<int>>& matrix, int block_size, int blocks_count, int l
     }
 
 
-    cout << "Start waiting " << recv_requests.size() << endl;
     for (int i = 0; i < recv_requests.size(); ++i) {
         MPI_Wait(&recv_requests[i], MPI_STATUS_IGNORE);
     }
-
-    cout << "Stop waiting" << endl;
 
     for (int i = 0; i < matrix.size(); i++) {
         for (int j = 0; j < matrix[i].size(); j++) {
@@ -75,7 +71,6 @@ void slave(vector<int> buffer, int lines_count, int blocks_count, int rank, int 
         }
     }
 
-    //cout << "Stop slave "<< rank << " req count " << send_requests_to_root.size() <<endl;
 }
 
 
@@ -97,11 +92,6 @@ int main() {
 
 
     if (rank == ROOT) {
-        cout << "block_size " << block_size << endl;
-        cout << "slaves_count " << slaves_count << endl;
-        cout << "blocks_count " << blocks_count << endl;
-        cout << "size " << size << endl;
-        cout << "lines_per_slave " << lines_per_slave << endl;
 
         vector<vector<int>> a(size, vector<int>(size, 0));
         master(a, block_size, blocks_count, lines_per_slave);
